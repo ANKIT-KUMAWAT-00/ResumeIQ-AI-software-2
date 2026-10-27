@@ -1,0 +1,14 @@
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/node_modules/
+**/.next/
+**/*.pyc
+**/*.db
+.git/
+artifacts/
+visual_regression/
+sample_data/
+.env
+.env.*
+!.env.example

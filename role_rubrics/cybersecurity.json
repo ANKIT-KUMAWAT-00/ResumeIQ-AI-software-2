@@ -1,0 +1,98 @@
+{
+  "role_id": "cybersecurity",
+  "role_name": "Cybersecurity Engineer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "Security fundamentals",
+      "weight": 0.18,
+      "keywords": [
+        "OWASP",
+        "threat modeling",
+        "CIA"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Identity and access",
+      "weight": 0.16,
+      "keywords": [
+        "IAM",
+        "MFA",
+        "least privilege"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Detection and response",
+      "weight": 0.16,
+      "keywords": [
+        "SIEM",
+        "incident response",
+        "logs"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Secure development",
+      "weight": 0.16,
+      "keywords": [
+        "SAST",
+        "DAST",
+        "secure coding"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Standards and labs",
+      "weight": 0.16,
+      "keywords": [
+        "NIST",
+        "ISO 27001",
+        "CTF"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Evidence and ethics",
+      "weight": 0.18,
+      "keywords": [
+        "lab",
+        "report",
+        "responsible disclosure"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

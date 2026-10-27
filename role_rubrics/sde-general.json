@@ -1,0 +1,112 @@
+{
+  "role_id": "sde-general",
+  "role_name": "Software Development Engineer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "Programming and problem solving",
+      "weight": 0.18,
+      "keywords": [
+        "data structures",
+        "algorithms",
+        "complexity"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Software design",
+      "weight": 0.16,
+      "keywords": [
+        "OOP",
+        "design patterns",
+        "modularity"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Projects and ownership",
+      "weight": 0.18,
+      "keywords": [
+        "project",
+        "GitHub",
+        "implementation"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Testing and debugging",
+      "weight": 0.14,
+      "keywords": [
+        "unit tests",
+        "debugging",
+        "coverage"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Databases and APIs",
+      "weight": 0.14,
+      "keywords": [
+        "SQL",
+        "REST",
+        "database"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Collaboration and delivery",
+      "weight": 0.12,
+      "keywords": [
+        "Git",
+        "code review",
+        "CI/CD"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Role relevance",
+      "weight": 0.08,
+      "keywords": [
+        "software engineer",
+        "SDE"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

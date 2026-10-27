@@ -1,0 +1,233 @@
+{
+  "contact": {
+    "full_name": "Ankit Kumawat",
+    "email": "ankitkumawat9509207175@gmail.com",
+    "phone": "+91-9928446504",
+    "location": "Punjab, India",
+    "github_url": "https://github.com/ANKIT-KUMAWAT-00",
+    "linkedin_url": "https://linkedin.com/in/ankit-kumawat"
+  },
+  "summary": null,
+  "skills": [
+    {
+      "category": "Languages",
+      "skills": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "C",
+        "C++",
+        "SQL",
+        "HTML/CSS"
+      ]
+    },
+    {
+      "category": "Frontend",
+      "skills": [
+        "React.js",
+        "Next.js",
+        "Tailwind CSS"
+      ]
+    },
+    {
+      "category": "Backend",
+      "skills": [
+        "Node.js",
+        "Express.js",
+        "FastAPI",
+        "REST APIs",
+        "WebSockets",
+        "Electron"
+      ]
+    },
+    {
+      "category": "Libraries",
+      "skills": [
+        "TensorFlow",
+        "Scikit-learn",
+        "OpenCV",
+        "NumPy",
+        "Pandas"
+      ]
+    },
+    {
+      "category": "Databases",
+      "skills": [
+        "PostgreSQL",
+        "MongoDB",
+        "MySQL",
+        "SQLite",
+        "Supabase"
+      ]
+    },
+    {
+      "category": "Tools",
+      "skills": [
+        "Git",
+        "GitHub",
+        "Linux",
+        "VS Code"
+      ]
+    },
+    {
+      "category": "Soft Skills",
+      "skills": [
+        "Problem-solving",
+        "Team Collaboration",
+        "Adaptability",
+        "Continuous Learning"
+      ]
+    }
+  ],
+  "experience": [
+    {
+      "title": "Web Development Intern",
+      "organization": "CodeValues Pvt. Limited",
+      "start_date": "Aug 2026",
+      "end_date": "Present",
+      "bullets": [
+        {
+          "text": "Developing and maintaining responsive web application features using modern front-end and back-end technologies as part of the development team."
+        },
+        {
+          "text": "Collaborating on REST API integration and database interactions to support core application functionality."
+        },
+        {
+          "text": "Participating in code reviews, debugging, and version control practices to ensure clean, maintainable code delivery."
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Four-Layer Secure Authentication System",
+      "technologies": [
+        "Python",
+        "OpenCV",
+        "Face Recognition",
+        "Flask",
+        "Email/OTP API"
+      ],
+      "start_date": "Apr 2026",
+      "bullets": [
+        {
+          "text": "Designed a four-factor authentication system (password, email OTP, hand-gesture verification, and facial recognition) so that a single compromised factor alone cannot grant access."
+        },
+        {
+          "text": "Used computer vision to verify a user-specific hand gesture in real time, followed by facial recognition for final identity confirmation."
+        },
+        {
+          "text": "Added login-environment change detection (new device/network) that forces re-authentication instead of automatically trusting the existing session."
+        }
+      ]
+    },
+    {
+      "title": "ResumeIQ AI",
+      "technologies": [
+        "Next.js",
+        "React",
+        "TypeScript",
+        "Supabase",
+        "Gemini API",
+        "Tailwind CSS"
+      ],
+      "start_date": "Jul 2026",
+      "bullets": [
+        {
+          "text": "Built a full-stack SaaS platform to analyze PDF/DOCX resumes and generate AI-powered ATS scores."
+        },
+        {
+          "text": "Integrated Gemini API with custom prompt engineering for resume analysis and personalized recommendations."
+        },
+        {
+          "text": "Implemented Supabase authentication, server-side sessions, and Razorpay subscription billing."
+        }
+      ]
+    },
+    {
+      "title": "InternPilot \u2014 AI-Powered Internship Agent",
+      "technologies": [
+        "LLMs",
+        "TypeScript",
+        "Gemini API",
+        "Next.js"
+      ],
+      "start_date": "Aug 2026",
+      "bullets": [
+        {
+          "text": "Built an autonomous AI internship assistant that searches, evaluates, and tailors internship applications using LangGraph."
+        },
+        {
+          "text": "Implemented job-description embeddings with pgvector, JWT authentication, Redis rate limiting, and Dockerized services."
+        },
+        {
+          "text": "Engineered a database-enforced approval workflow preventing applications from being sent without explicit user approval."
+        }
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "title": "OOPS and DSA",
+      "issuer": "CipherSchools",
+      "date": "Jul 2026",
+      "details": [
+        "Certificate"
+      ]
+    },
+    {
+      "title": "Django, HTML and Web Development",
+      "issuer": "Udemy",
+      "date": "Sep 2026",
+      "details": [
+        "Certificate"
+      ]
+    },
+    {
+      "title": "Agentic AI",
+      "issuer": "Oracle",
+      "date": "Sep 2026",
+      "details": [
+        "Certificate"
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "title": "Solved 100+ problems on LeetCode and earned multiple Python badges on HackerRank."
+    },
+    {
+      "title": "Maintain public GitHub repositories showcasing full-stack and AI engineering projects."
+    }
+  ],
+  "education": [
+    {
+      "institution": "Lovely Professional University",
+      "degree": "Bachelor of Technology",
+      "field_of_study": "Computer Science and Engineering; CGPA \u2013 7.32",
+      "start_date": "Aug 2024",
+      "end_date": "Present",
+      "location": "Punjab, India",
+      "details": []
+    },
+    {
+      "institution": "MG English International School",
+      "degree": "Intermediate \u2013 70%",
+      "field_of_study": null,
+      "start_date": "Mar 2023",
+      "end_date": "Mar 2024",
+      "location": "Jaipur, Rajasthan",
+      "details": []
+    },
+    {
+      "institution": "MG English International School",
+      "degree": "Matriculation \u2013 80%",
+      "field_of_study": null,
+      "start_date": "Mar 2021",
+      "end_date": "Mar 2022",
+      "location": "Jaipur, Rajasthan",
+      "details": []
+    }
+  ],
+  "extracurricular_activities": []
+}

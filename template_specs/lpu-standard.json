@@ -1,0 +1,201 @@
+{
+  "template_id": "lpu-standard",
+  "version": "1.0.0",
+  "display_name": "LPU Standard",
+  "description": "Compact single-column layout inferred from the supplied one-page resume PDF. Not an official LPU-issued template.",
+  "page_size": "LETTER",
+  "orientation": "portrait",
+  "margins": {
+    "top_in": 0.38,
+    "bottom_in": 0.38,
+    "left_in": 0.48,
+    "right_in": 0.48
+  },
+  "fonts": {
+    "family": "Arial",
+    "name_pt": 18,
+    "heading_pt": 10.5,
+    "body_pt": 8.5,
+    "small_pt": 7.5,
+    "heading_color": "#2874B8",
+    "body_color": "#111827"
+  },
+  "spacing": {
+    "line_spacing": 0.95,
+    "paragraph_before_pt": 0,
+    "paragraph_after_pt": 1,
+    "section_before_pt": 4,
+    "section_after_pt": 1.5
+  },
+  "section_order": [
+    "skills",
+    "experience",
+    "projects",
+    "certifications",
+    "achievements",
+    "education",
+    "extracurricular"
+  ],
+  "sections": [
+    {
+      "id": "education",
+      "label": "EDUCATION",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "institution",
+        "degree",
+        "field_of_study",
+        "start_date",
+        "end_date",
+        "details"
+      ]
+    },
+    {
+      "id": "skills",
+      "label": "SKILL",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "category",
+        "skills"
+      ]
+    },
+    {
+      "id": "experience",
+      "label": "INTERNSHIPS",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "organization",
+        "location",
+        "start_date",
+        "end_date",
+        "bullets"
+      ]
+    },
+    {
+      "id": "projects",
+      "label": "PROJECTS",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "technologies",
+        "bullets",
+        "url",
+        "start_date",
+        "end_date"
+      ]
+    },
+    {
+      "id": "certifications",
+      "label": "CERTIFICATE",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "issuer",
+        "date",
+        "details"
+      ]
+    },
+    {
+      "id": "achievements",
+      "label": "ACHIEVEMENTS",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "issuer",
+        "date",
+        "details"
+      ]
+    },
+    {
+      "id": "extracurricular",
+      "label": "EXTRACURRICULAR ACTIVITIES",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": true,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "organization",
+        "date",
+        "details"
+      ]
+    }
+  ],
+  "bullet_character": "\u2022",
+  "bullet_left_indent_in": 0.18,
+  "bullet_first_line_indent_in": -0.12,
+  "date_tab_position_in": 6.7,
+  "contact_separator": " | ",
+  "allow_photo": false,
+  "max_pages": 1,
+  "layout": "single-column",
+  "fit_adjustments": {
+    "min_body_pt": 7.5,
+    "max_body_pt": 11,
+    "min_paragraph_after_pt": 0,
+    "max_paragraph_after_pt": 6
+  },
+  "notes_and_uncertainty": [
+    "Based on the user-supplied resume PDF only; no official LPU placement-cell blank template was supplied.",
+    "Observed single-column layout, compact spacing, uppercase section labels, and right-aligned dates.",
+    "Font measurements and section separators are approximate; inspect generated output against the reference PDF."
+  ],
+  "header_alignment": "left",
+  "header_uppercase": true,
+  "contact_layout": "two-column",
+  "contact_labels": true
+}

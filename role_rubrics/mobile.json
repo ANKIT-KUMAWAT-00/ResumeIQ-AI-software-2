@@ -1,0 +1,98 @@
+{
+  "role_id": "mobile",
+  "role_name": "Mobile Developer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "Platform framework",
+      "weight": 0.2,
+      "keywords": [
+        "Flutter",
+        "Android",
+        "Kotlin"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "UI and navigation",
+      "weight": 0.16,
+      "keywords": [
+        "responsive UI",
+        "navigation",
+        "state"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "API and offline behavior",
+      "weight": 0.16,
+      "keywords": [
+        "REST",
+        "offline",
+        "caching"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Testing",
+      "weight": 0.14,
+      "keywords": [
+        "unit tests",
+        "widget tests",
+        "integration"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Performance and release",
+      "weight": 0.16,
+      "keywords": [
+        "profiling",
+        "Play Store",
+        "release"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Project evidence",
+      "weight": 0.18,
+      "keywords": [
+        "app",
+        "GitHub",
+        "screenshots"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

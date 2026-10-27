@@ -1,0 +1,5 @@
+# Testing
+
+Run `cd backend && pytest -q` for schemas, template rendering, analyzer, auth/session revocation, upload signature checks, payment signature/capture state and webhook idempotency, testimonial consent, prompt guards, package entitlements, and local deletion tests. The current verified run was 27 passed and 1 skipped. PDF conversion tests are skipped if LibreOffice is absent. The Razorpay live lifecycle is skipped unless test credentials are configured and deliberately does not charge by default.
+
+Run `cd frontend && npm run lint && npm run build` after `npm install`. CI runs both backend tests and frontend lint/build. The repository includes a pixel-based golden-image regression script. Run `python scripts/visual_regression.py`; it renders every page for all three templates and compares the result to `visual_regression/golden/`. Use `--update` only when intentionally accepting a visual change. Generate PDF/DOCX examples with `cd backend && python scripts/render_samples.py` and compare the LPU output to `sample_data/reference_resume.pdf`.

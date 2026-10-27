@@ -1,0 +1,97 @@
+{
+  "role_id": "cloud-devops",
+  "role_name": "Cloud / DevOps Engineer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "Cloud infrastructure",
+      "weight": 0.18,
+      "keywords": [
+        "AWS",
+        "Azure",
+        "GCP"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Containers and orchestration",
+      "weight": 0.18,
+      "keywords": [
+        "Docker",
+        "Kubernetes"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "CI/CD and automation",
+      "weight": 0.18,
+      "keywords": [
+        "GitHub Actions",
+        "Terraform",
+        "pipeline"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Observability and reliability",
+      "weight": 0.16,
+      "keywords": [
+        "monitoring",
+        "logs",
+        "SLO"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Security and networking",
+      "weight": 0.16,
+      "keywords": [
+        "IAM",
+        "networking",
+        "secrets"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Evidence and outcomes",
+      "weight": 0.14,
+      "keywords": [
+        "deployment",
+        "uptime",
+        "automation"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

@@ -1,0 +1,195 @@
+{
+  "template_id": "ats-clean",
+  "version": "1.0.0",
+  "display_name": "ATS Clean",
+  "description": "Readable, single-column, text-first professional layout.",
+  "page_size": "LETTER",
+  "orientation": "portrait",
+  "margins": {
+    "top_in": 0.55,
+    "bottom_in": 0.55,
+    "left_in": 0.65,
+    "right_in": 0.65
+  },
+  "fonts": {
+    "family": "Arial",
+    "name_pt": 20,
+    "heading_pt": 11,
+    "body_pt": 9.5,
+    "small_pt": 8,
+    "heading_color": "#172554",
+    "body_color": "#111827"
+  },
+  "spacing": {
+    "line_spacing": 1,
+    "paragraph_before_pt": 0,
+    "paragraph_after_pt": 2,
+    "section_before_pt": 7,
+    "section_after_pt": 3
+  },
+  "section_order": [
+    "education",
+    "skills",
+    "experience",
+    "projects",
+    "certifications",
+    "achievements",
+    "extracurricular"
+  ],
+  "sections": [
+    {
+      "id": "education",
+      "label": "Education",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "institution",
+        "degree",
+        "field_of_study",
+        "start_date",
+        "end_date",
+        "details"
+      ]
+    },
+    {
+      "id": "skills",
+      "label": "Skills",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "category",
+        "skills"
+      ]
+    },
+    {
+      "id": "experience",
+      "label": "Experience",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "organization",
+        "location",
+        "start_date",
+        "end_date",
+        "bullets"
+      ]
+    },
+    {
+      "id": "projects",
+      "label": "Projects",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "technologies",
+        "bullets",
+        "url",
+        "start_date",
+        "end_date"
+      ]
+    },
+    {
+      "id": "certifications",
+      "label": "Certifications",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "issuer",
+        "date",
+        "details"
+      ]
+    },
+    {
+      "id": "achievements",
+      "label": "Achievements",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "issuer",
+        "date",
+        "details"
+      ]
+    },
+    {
+      "id": "extracurricular",
+      "label": "Extracurricular Activities",
+      "enabled": true,
+      "heading_uppercase": true,
+      "heading_bold": true,
+      "heading_underline": false,
+      "horizontal_rule": false,
+      "rule_thickness_pt": 0.5,
+      "rule_spacing_pt": 2,
+      "max_items": 20,
+      "max_bullets_per_item": 6,
+      "allowed_fields": [
+        "title",
+        "organization",
+        "date",
+        "details"
+      ]
+    }
+  ],
+  "bullet_character": "\u2022",
+  "bullet_left_indent_in": 0.18,
+  "bullet_first_line_indent_in": -0.12,
+  "date_tab_position_in": 6.7,
+  "contact_separator": " | ",
+  "allow_photo": false,
+  "max_pages": 2,
+  "layout": "single-column",
+  "fit_adjustments": {
+    "min_body_pt": 7.5,
+    "max_body_pt": 11,
+    "min_paragraph_after_pt": 0,
+    "max_paragraph_after_pt": 6
+  },
+  "notes_and_uncertainty": [
+    "ATS behavior differs by employer and platform; no outcome is guaranteed."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "role_id": "fullstack",
+  "role_name": "Full-stack Developer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "Frontend",
+      "weight": 0.18,
+      "keywords": [
+        "React",
+        "Next.js",
+        "TypeScript"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Backend APIs",
+      "weight": 0.18,
+      "keywords": [
+        "FastAPI",
+        "Node.js",
+        "REST"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Data modeling",
+      "weight": 0.16,
+      "keywords": [
+        "PostgreSQL",
+        "schema",
+        "migrations"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Security",
+      "weight": 0.14,
+      "keywords": [
+        "auth",
+        "validation",
+        "authorization"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Testing and deployment",
+      "weight": 0.18,
+      "keywords": [
+        "Docker",
+        "CI/CD",
+        "tests"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "End-to-end ownership",
+      "weight": 0.16,
+      "keywords": [
+        "full-stack",
+        "integration",
+        "production"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

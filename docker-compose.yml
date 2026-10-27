@@ -1,0 +1,86 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: resumeiq
+      POSTGRES_PASSWORD: resumeiq
+      POSTGRES_DB: resumeiq
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resumeiq -d resumeiq"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://resumeiq:resumeiq@db:5432/resumeiq
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_DIR: /app/private_uploads
+      OUTPUT_DIR: /app/private_outputs
+    volumes: [private_uploads:/app/private_uploads, private_outputs:/app/private_outputs]
+    ports: ["8000:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["sh", "-c", "rq worker resumeiq --url $$REDIS_URL"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://resumeiq:resumeiq@db:5432/resumeiq
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_DIR: /app/private_uploads
+      OUTPUT_DIR: /app/private_outputs
+    volumes: [private_uploads:/app/private_uploads, private_outputs:/app/private_outputs]
+    depends_on:
+      api: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  retention-cleanup:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["sh", "-c", "python -m app.workers.cleanup_loop"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://resumeiq:resumeiq@db:5432/resumeiq
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_DIR: /app/private_uploads
+      OUTPUT_DIR: /app/private_outputs
+    volumes: [private_uploads:/app/private_uploads, private_outputs:/app/private_outputs]
+    depends_on:
+      api: {condition: service_healthy}
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_APP_ENV: development
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports: ["3000:3000"]
+    depends_on: [api]
+volumes:
+  postgres_data:
+  redis_data:
+  private_uploads:
+  private_outputs:

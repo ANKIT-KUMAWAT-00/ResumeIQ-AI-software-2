@@ -1,0 +1,98 @@
+{
+  "role_id": "data-analyst",
+  "role_name": "Data Analyst",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "SQL and data retrieval",
+      "weight": 0.2,
+      "keywords": [
+        "SQL",
+        "joins",
+        "CTE"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Data cleaning",
+      "weight": 0.18,
+      "keywords": [
+        "Pandas",
+        "data quality",
+        "missing values"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Statistics",
+      "weight": 0.16,
+      "keywords": [
+        "hypothesis testing",
+        "distribution",
+        "confidence"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Visualization and reporting",
+      "weight": 0.18,
+      "keywords": [
+        "Power BI",
+        "Tableau",
+        "Matplotlib"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Business communication",
+      "weight": 0.14,
+      "keywords": [
+        "insights",
+        "stakeholders",
+        "KPI"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Project evidence",
+      "weight": 0.14,
+      "keywords": [
+        "portfolio",
+        "dashboard",
+        "analysis"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

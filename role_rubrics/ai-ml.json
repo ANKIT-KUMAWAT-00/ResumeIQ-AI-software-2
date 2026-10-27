@@ -1,0 +1,99 @@
+{
+  "role_id": "ai-ml",
+  "role_name": "AI/ML Engineer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "ML fundamentals and methods",
+      "weight": 0.18,
+      "keywords": [
+        "classification",
+        "regression",
+        "embeddings"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Dataset realism and preparation",
+      "weight": 0.16,
+      "keywords": [
+        "data cleaning",
+        "feature engineering",
+        "dataset"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Evaluation metrics",
+      "weight": 0.18,
+      "keywords": [
+        "precision",
+        "recall",
+        "F1",
+        "RMSE"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Deployment and reproducibility",
+      "weight": 0.16,
+      "keywords": [
+        "inference API",
+        "Docker",
+        "reproducibility"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Code and project evidence",
+      "weight": 0.16,
+      "keywords": [
+        "GitHub",
+        "README",
+        "notebook"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Research or domain fit",
+      "weight": 0.16,
+      "keywords": [
+        "research",
+        "Kaggle",
+        "experiments"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

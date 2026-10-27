@@ -1,0 +1,98 @@
+{
+  "role_id": "backend",
+  "role_name": "Backend Developer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "API design",
+      "weight": 0.2,
+      "keywords": [
+        "REST APIs",
+        "WebSockets",
+        "OpenAPI"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Data and persistence",
+      "weight": 0.18,
+      "keywords": [
+        "PostgreSQL",
+        "SQL",
+        "transactions"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Security and reliability",
+      "weight": 0.18,
+      "keywords": [
+        "authentication",
+        "authorization",
+        "rate limiting"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Testing and quality",
+      "weight": 0.16,
+      "keywords": [
+        "pytest",
+        "unit tests",
+        "integration tests"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Deployment and operations",
+      "weight": 0.14,
+      "keywords": [
+        "Docker",
+        "CI/CD",
+        "monitoring"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Role evidence",
+      "weight": 0.14,
+      "keywords": [
+        "backend",
+        "services",
+        "performance"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}

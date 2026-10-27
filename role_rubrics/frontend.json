@@ -1,0 +1,98 @@
+{
+  "role_id": "frontend",
+  "role_name": "Frontend Developer",
+  "version": "1.0.0",
+  "criteria": [
+    {
+      "name": "UI engineering",
+      "weight": 0.22,
+      "keywords": [
+        "React",
+        "Next.js",
+        "TypeScript"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Accessibility and UX",
+      "weight": 0.18,
+      "keywords": [
+        "accessibility",
+        "responsive",
+        "WCAG"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "State and data",
+      "weight": 0.16,
+      "keywords": [
+        "API integration",
+        "state management",
+        "caching"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Testing",
+      "weight": 0.14,
+      "keywords": [
+        "component tests",
+        "Playwright",
+        "Jest"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Performance",
+      "weight": 0.16,
+      "keywords": [
+        "Core Web Vitals",
+        "lazy loading",
+        "bundle"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    },
+    {
+      "name": "Role evidence",
+      "weight": 0.14,
+      "keywords": [
+        "frontend",
+        "design system",
+        "web"
+      ],
+      "evidence_required": "Concrete project, internship, coursework, or implementation evidence. Do not infer missing evidence.",
+      "red_flags": [
+        "Unsupported impact metrics",
+        "Unverifiable claims",
+        "Keyword stuffing"
+      ]
+    }
+  ],
+  "scoring_guidance": "Use resume evidence only. Scores are advisory heuristics, not hiring probabilities or guaranteed ATS scores."
+}
