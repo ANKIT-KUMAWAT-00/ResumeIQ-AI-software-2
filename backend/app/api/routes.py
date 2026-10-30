@@ -431,7 +431,9 @@ def get_resume_status(resume_id: int, db: Session = Depends(get_db), user: User 
         'has_validation_report': r.validation_report is not None,
     }
 
-@router.post('/resumes/{resume_id}/extract')
+
+# Resume intelligence endpoints follow
+
 def extract_resume_endpoint(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
     r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
     if not r:
@@ -621,12 +623,185 @@ def request_revision(resume_id:int,body:RevisionBody,db:Session=Depends(get_db),
  revision=RevisionRequest(resume_id=r.id,user_id=user.id,notes=body.notes,status='requested');db.add(revision);audit(db,user,'revision.requested','resume',r.id);db.commit();db.refresh(revision)
  return {'id':revision.id,'status':revision.status,'message':'Revision request recorded for admin review.'}
 
+@router.post('/templates/upload')
+async def upload_template(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+):
+    enforce_rate_limit('upload-template-user:' + str(user.id), 20, 3600)
+    name = (file.filename or 'template').replace(chr(92), '/').split('/')[-1]
+    suffix = Path(name).suffix.lower()
+    if suffix not in ('.docx', '.pdf'):
+        raise HTTPException(415, 'Only DOCX and PDF template files are supported.')
 
-# Template routes follow
+    content = await file.read(settings.max_upload_mb * 1024 * 1024 + 1)
+    if len(content) > settings.max_upload_mb * 1024 * 1024:
+        raise HTTPException(413, f'Maximum upload size is {settings.max_upload_mb} MB.')
+
+    if suffix == '.pdf' and not content.startswith(b'%PDF-'):
+        raise HTTPException(415, 'File content does not match a PDF signature.')
+    if suffix == '.docx' and not (content.startswith(b'PK') and b'word/document.xml' in content[:200000]):
+        raise HTTPException(415, 'File content does not look like a DOCX document.')
+
+    path, digest = store_upload(content, name, user.id)
+
+    from app.services.templates.analyzer import TemplateAnalyzer
+    try:
+        analyzer = TemplateAnalyzer(path)
+        spec = analyzer.analyze()
+    except Exception as exc:
+        raise HTTPException(422, f'Template analysis failed: {exc}') from exc
+
+    tpl_id = f"custom-{user.id}-{secrets.token_hex(4)}"
+    spec_dict = spec.model_dump(mode='json')
+    spec_dict['template_id'] = tpl_id
+    spec_dict['template_name'] = name
+    spec_dict['file_type'] = 'docx' if suffix == '.docx' else 'pdf'
+
+    row = Template(
+        template_id=tpl_id,
+        template_name=name,
+        template_type='custom_docx' if suffix == '.docx' else 'custom_pdf',
+        original_file_path=path,
+        version='1.0.0',
+        spec=spec_dict,
+        analysis_status='analyzed',
+        is_confirmed=False,
+        published=False,
+        created_by_user_id=user.id,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    audit(db, user, 'template.uploaded', 'template', tpl_id, {'filename': name, 'sha256': digest})
+
+    return {
+        'id': row.id,
+        'template_id': row.template_id,
+        'template_name': row.template_name,
+        'template_type': row.template_type,
+        'is_confirmed': row.is_confirmed,
+        'analysis_status': row.analysis_status,
+        'specification': row.spec,
+        'message': 'Template analyzed successfully. Please review and confirm the specification.',
+    }
+
 @router.get('/templates')
-def templates(db:Session=Depends(get_db)):
- rows=db.query(Template).filter_by(published=True).all()
- return [{'template_id':t.template_id,'version':t.version,'display_name':t.spec.get('display_name',t.template_id),'description':t.spec.get('description',''),'layout':t.spec.get('layout','single-column')} for t in rows]
+def list_templates(request: Request, db: Session = Depends(get_db)):
+    user_id = None
+    try:
+        from app.core.security import get_current_user
+        u = get_current_user(request, db)
+        user_id = u.id
+    except Exception:
+        pass
+
+    if user_id:
+        rows = db.query(Template).filter(
+            or_(Template.published.is_(True), Template.created_by_user_id == user_id)
+        ).all()
+    else:
+        rows = db.query(Template).filter(Template.published.is_(True)).all()
+    return [
+        {
+            'template_id': t.template_id,
+            'template_name': t.template_name or t.spec.get('display_name', t.template_id),
+            'version': t.version,
+            'template_type': t.template_type,
+            'display_name': t.spec.get('display_name', t.template_id),
+            'description': t.spec.get('description', ''),
+            'layout': t.spec.get('layout', 'single-column'),
+            'page_size': t.spec.get('page_size', 'LETTER'),
+            'is_confirmed': t.is_confirmed,
+            'sections': [
+                {
+                    'id': s.get('id'),
+                    'heading': s.get('heading') or s.get('label'),
+                    'required': s.get('required', False),
+                    'order': s.get('order', idx + 1),
+                }
+                for idx, s in enumerate(t.spec.get('sections', []))
+            ],
+        }
+        for t in rows
+    ]
+
+@router.get('/templates/{template_id}')
+def get_template(template_id: str, db: Session = Depends(get_db)):
+    tpl = db.query(Template).filter_by(template_id=template_id).first()
+    if not tpl:
+        raise HTTPException(404, 'Template not found.')
+    return {
+        'template_id': tpl.template_id,
+        'template_name': tpl.template_name,
+        'template_type': tpl.template_type,
+        'version': tpl.version,
+        'analysis_status': tpl.analysis_status,
+        'is_confirmed': tpl.is_confirmed,
+        'published': tpl.published,
+        'specification': tpl.spec,
+    }
+
+@router.post('/templates/{template_id}/analyze')
+def analyze_template_endpoint(template_id: str, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    tpl = db.query(Template).filter_by(template_id=template_id).first()
+    if not tpl:
+        raise HTTPException(404, 'Template not found.')
+    if tpl.created_by_user_id and tpl.created_by_user_id != user.id and user.role != 'admin':
+        raise HTTPException(403, 'Permission denied.')
+    if not tpl.original_file_path or not Path(tpl.original_file_path).exists():
+        raise HTTPException(400, 'Original template file is not available on disk.')
+
+    from app.services.templates.analyzer import TemplateAnalyzer
+    analyzer = TemplateAnalyzer(tpl.original_file_path)
+    spec = analyzer.analyze()
+    spec_dict = spec.model_dump(mode='json')
+    spec_dict['template_id'] = tpl.template_id
+    tpl.spec = spec_dict
+    tpl.analysis_status = 'analyzed'
+    db.commit()
+    return {'ok': True, 'specification': tpl.spec}
+
+@router.get('/templates/{template_id}/specification')
+def get_template_specification(template_id: str, db: Session = Depends(get_db)):
+    tpl = db.query(Template).filter_by(template_id=template_id).first()
+    if not tpl:
+        raise HTTPException(404, 'Template not found.')
+    return tpl.spec
+
+@router.post('/templates/{template_id}/confirm')
+def confirm_template(
+    template_id: str,
+    body: dict = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+):
+    tpl = db.query(Template).filter_by(template_id=template_id).first()
+    if not tpl:
+        raise HTTPException(404, 'Template not found.')
+    if tpl.created_by_user_id and tpl.created_by_user_id != user.id and user.role != 'admin':
+        raise HTTPException(403, 'Permission denied.')
+
+    # User may optionally pass custom adjustments to the specification
+    if body and isinstance(body, dict) and 'specification' in body:
+        try:
+            valid = TemplateSpec.model_validate(body['specification'])
+            tpl.spec = valid.model_dump(mode='json')
+        except Exception as exc:
+            raise HTTPException(422, f'Invalid template adjustments: {exc}') from exc
+
+    tpl.is_confirmed = True
+    tpl.published = True
+    audit(db, user, 'template.confirmed', 'template', template_id)
+    db.commit()
+    return {
+        'ok': True,
+        'template_id': tpl.template_id,
+        'is_confirmed': True,
+        'published': True,
+        'message': 'Template confirmed and activated.',
+    }
 @router.get('/account/export')
 def export_account(db:Session=Depends(get_db),user:User=Depends(current_user)):
  orders=db.query(Order).filter_by(user_id=user.id).all(); resumes=db.query(Resume).filter_by(user_id=user.id).all()
