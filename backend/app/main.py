@@ -18,7 +18,24 @@ def seed_templates():
    try: spec=TemplateSpec.model_validate_json(path.read_text())
    except Exception: continue
    row=db.query(Template).filter_by(template_id=spec.template_id).first()
-   if not row: db.add(Template(template_id=spec.template_id,version=spec.version,spec=spec.model_dump(mode='json'),published=True))
+   name = spec.template_name or spec.display_name or spec.template_id
+   if not row:
+       db.add(Template(
+           template_id=spec.template_id,
+           template_name=name,
+           template_type="built_in",
+           version=spec.version,
+           spec=spec.model_dump(mode='json'),
+           analysis_status="analyzed",
+           is_confirmed=True,
+           published=True,
+       ))
+   else:
+       row.template_name = name
+       row.template_type = "built_in"
+       row.spec = spec.model_dump(mode='json')
+       row.is_confirmed = True
+       row.published = True
   from app.models import RoleRubric
   rubric_root=root.parent/'role_rubrics'
   for path in rubric_root.glob('*.json'):
