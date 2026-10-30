@@ -5,15 +5,44 @@ from fastapi import APIRouter,Depends,HTTPException,Request,Response,UploadFile,
 from fastapi.responses import FileResponse,RedirectResponse
 from pydantic import BaseModel,EmailStr,Field
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from app.db.session import get_db
 from app.models import User,OTPCode,Order,Payment,Resume,Extraction,Review,Template,Output,AuditLog,WebhookEvent,RevisionRequest,Testimonial,UserSession,RoleRubric
 from app.core.config import settings
-from app.core.security import new_otp,hash_otp,verify_otp,issue_session,revoke_session
+from app.core.security import (
+    new_otp,
+    hash_otp,
+    verify_otp,
+    issue_session,
+    revoke_session,
+    hash_password,
+    verify_password,
+)
 from app.core.packages import PACKAGES,package_or_404
 from app.core.limits import enforce_rate_limit
 from app.api.deps import current_user
 from app.services.mailer import send_otp
+from app.services.auth import AuthService, DevelopmentVerificationProvider
+from app.schemas.auth import (
+    RegisterRequest,
+    LoginRequest,
+    VerifyEmailRequest,
+    VerifyPhoneRequest,
+    ResendVerificationRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    UserResponse,
+)
+from app.schemas.questions import ResumeAnswerSubmission
+from app.schemas.resume import ResumeJSON
+from app.services.gemini.client import GeminiService
+from app.services.extraction.normalizer import ResumeNormalizer
+from app.services.pipeline import (
+    extract_and_normalize,
+    detect_missing_info,
+    apply_resume_answers,
+    generate_resume_document,
+)
 from app.services.payments.razorpay import RazorpayGateway,PaymentConfigurationError
 from app.services.storage.service import store_upload,read_private,delete_private,signed_download_url
 from app.services.pipeline import process_resume_job
@@ -53,6 +82,157 @@ def enqueue_resume(resume_id:int):
 def health(): return {'status':'ok','service':'resumeiq-api'}
 @router.get('/packages')
 def packages(): return [{'id':k,**v} for k,v in PACKAGES.items()]
+@router.post('/auth/register')
+def register(body: RegisterRequest, response: Response, request: Request, db: Session = Depends(get_db)):
+    enforce_rate_limit('register-ip:' + str(request.client.host if request.client else 'unknown'), 10, 900)
+    email = body.email.lower().strip()
+    if db.query(User).filter_by(email=email).first():
+        raise HTTPException(409, 'An account with this email already exists.')
+    user = User(
+        full_name=body.full_name.strip(),
+        email=email,
+        phone=body.phone.strip() if body.phone else None,
+        password_hash=hash_password(body.password),
+        role='admin' if email in settings.admins else 'user',
+        email_verified=False,
+        phone_verified=False,
+        account_status='active',
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    auth_svc = AuthService(db)
+    dispatch_info = auth_svc.create_verification(email, 'email', user.id)
+
+    token = issue_session(user.id, db)
+    db.commit()
+    response.set_cookie(
+        settings.session_cookie_name,
+        token,
+        httponly=True,
+        secure=settings.app_env.lower() == 'production',
+        samesite='none' if settings.app_env.lower() == 'production' else 'lax',
+        max_age=settings.session_ttl_hours * 3600,
+        path='/',
+    )
+    res = {
+        'id': user.id,
+        'full_name': user.full_name,
+        'email': user.email,
+        'phone': user.phone,
+        'role': user.role,
+        'email_verified': user.email_verified,
+        'phone_verified': user.phone_verified,
+        'account_status': user.account_status,
+        'token': token,
+        'verification': dispatch_info,
+    }
+    return res
+
+@router.post('/auth/login')
+def login(body: LoginRequest, response: Response, request: Request, db: Session = Depends(get_db)):
+    enforce_rate_limit('login-ip:' + str(request.client.host if request.client else 'unknown'), 20, 900)
+    user = None
+    if body.email:
+        user = db.query(User).filter_by(email=body.email.lower().strip()).first()
+    elif body.phone:
+        user = db.query(User).filter_by(phone=body.phone.strip()).first()
+    if not user or user.deleted_at:
+        raise HTTPException(401, 'Invalid credentials.')
+
+    # 1. Password login
+    if body.password:
+        if not verify_password(body.password, user.password_hash):
+            raise HTTPException(401, 'Invalid credentials.')
+    # 2. OTP code login
+    elif body.code:
+        auth_svc = AuthService(db)
+        auth_svc.verify_code(user.email, 'email', body.code)
+    else:
+        raise HTTPException(400, 'Password or verification code is required.')
+
+    token = issue_session(user.id, db)
+    db.commit()
+    response.set_cookie(
+        settings.session_cookie_name,
+        token,
+        httponly=True,
+        secure=settings.app_env.lower() == 'production',
+        samesite='none' if settings.app_env.lower() == 'production' else 'lax',
+        max_age=settings.session_ttl_hours * 3600,
+        path='/',
+    )
+    return {
+        'id': user.id,
+        'full_name': user.full_name,
+        'email': user.email,
+        'phone': user.phone,
+        'role': user.role,
+        'email_verified': user.email_verified,
+        'phone_verified': user.phone_verified,
+        'account_status': user.account_status,
+        'token': token,
+    }
+
+@router.post('/auth/verify-email')
+def verify_email(body: VerifyEmailRequest, db: Session = Depends(get_db)):
+    email = body.email.lower().strip()
+    auth_svc = AuthService(db)
+    record = auth_svc.verify_code(email, 'email', body.code)
+    user = db.query(User).filter_by(email=email).first()
+    if user:
+        user.email_verified = True
+        db.commit()
+    return {'ok': True, 'email_verified': True, 'message': 'Email successfully verified.'}
+
+@router.post('/auth/verify-phone')
+def verify_phone(body: VerifyPhoneRequest, db: Session = Depends(get_db)):
+    phone = body.phone.strip()
+    auth_svc = AuthService(db)
+    record = auth_svc.verify_code(phone, 'phone', body.code)
+    user = db.query(User).filter_by(phone=phone).first()
+    if user:
+        user.phone_verified = True
+        db.commit()
+    return {'ok': True, 'phone_verified': True, 'message': 'Phone successfully verified.'}
+
+@router.post('/auth/resend-verification')
+def resend_verification(body: ResendVerificationRequest, db: Session = Depends(get_db)):
+    ident = body.identifier.strip().lower()
+    user = None
+    if body.verification_type == 'email':
+        user = db.query(User).filter_by(email=ident).first()
+    elif body.verification_type == 'phone':
+        user = db.query(User).filter_by(phone=ident).first()
+    auth_svc = AuthService(db)
+    return auth_svc.create_verification(ident, body.verification_type, user.id if user else None)
+
+@router.post('/auth/forgot-password')
+def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    email = body.email.lower().strip()
+    user = db.query(User).filter_by(email=email).first()
+    if not user:
+        # Don't leak user existence in generic message
+        return {'ok': True, 'message': 'If an account exists with this email, a reset code has been sent.'}
+    auth_svc = AuthService(db)
+    res = auth_svc.create_verification(email, 'password_reset', user.id)
+    return {'ok': True, 'message': 'Password reset code has been dispatched.', **res}
+
+@router.post('/auth/reset-password')
+def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    email = body.email.lower().strip()
+    user = db.query(User).filter_by(email=email).first()
+    if not user:
+        raise HTTPException(404, 'User not found.')
+    auth_svc = AuthService(db)
+    auth_svc.verify_code(email, 'password_reset', body.code)
+    user.password_hash = hash_password(body.new_password)
+    # Revoke old sessions
+    db.query(UserSession).filter_by(user_id=user.id).update({'revoked': True})
+    db.commit()
+    return {'ok': True, 'message': 'Password has been reset successfully. Please log in.'}
+
 @router.post('/auth/request-otp')
 def request_otp(body:OTPRequest,request:Request,db:Session=Depends(get_db)):
  enforce_rate_limit('otp-ip:'+str(request.client.host if request.client else 'unknown'),10,900)
@@ -65,6 +245,7 @@ def request_otp(body:OTPRequest,request:Request,db:Session=Depends(get_db)):
  result={'message':'If email delivery is configured, a sign-in code has been sent.'}
  if settings.app_env.lower()=='development' and settings.allow_dev_otp and not settings.smtp_host: result['development_code']=code
  return result
+
 @router.post('/auth/verify-otp')
 def verify_otp_route(body:OTPVerify,response:Response,request:Request,db:Session=Depends(get_db)):
  enforce_rate_limit('verify-otp-ip:'+str(request.client.host if request.client else 'unknown'),20,900)
@@ -79,11 +260,24 @@ def verify_otp_route(body:OTPVerify,response:Response,request:Request,db:Session
  else: user.role='admin' if email in settings.admins else 'user'
  token=issue_session(user.id,db);db.commit();response.set_cookie(settings.session_cookie_name,token,httponly=True,secure=settings.app_env.lower()=='production',samesite='none' if settings.app_env.lower()=='production' else 'lax',max_age=settings.session_ttl_hours*3600,path='/')
  return {'id':user.id,'email':user.email,'role':user.role}
+
 @router.post('/auth/logout')
 def logout(response:Response,request:Request,db:Session=Depends(get_db)):
  revoke_session(request.cookies.get(settings.session_cookie_name),db);response.delete_cookie(settings.session_cookie_name,path='/');return {'ok':True}
+
 @router.get('/auth/me')
-def me(user:User=Depends(current_user)): return {'id':user.id,'email':user.email,'role':user.role}
+def me(user:User=Depends(current_user)):
+ return {
+     'id': user.id,
+     'full_name': user.full_name,
+     'email': user.email,
+     'phone': user.phone,
+     'role': user.role,
+     'email_verified': user.email_verified,
+     'phone_verified': user.phone_verified,
+     'account_status': user.account_status,
+     'created_at': user.created_at.isoformat() if user.created_at else '',
+ }
 
 @router.post('/payments/orders')
 def create_order(body:OrderRequest,request:Request,db:Session=Depends(get_db),user:User=Depends(current_user)):
@@ -154,6 +348,7 @@ def my_orders(db:Session=Depends(get_db),user:User=Depends(current_user)):
  return [{'id':o.id,'package_id':o.package_id,'amount_paise':o.amount_paise,'status':o.status,'created_at':o.created_at.isoformat()} for o in rows]
 
 @router.post('/resumes')
+@router.post('/resumes/upload')
 async def upload_resume(request:Request,file:UploadFile=File(...),order_id: int | None = Form(None),target_role:str=Form('sde-general'),template_id:str=Form('ats-clean'),template_overrides:str=Form('{}'),db:Session=Depends(get_db),user:User=Depends(current_user)):
  enforce_rate_limit('upload-user:'+str(user.id),50,3600)
  order=None
@@ -184,7 +379,7 @@ async def upload_resume(request:Request,file:UploadFile=File(...),order_id: int 
  if suffix=='.pdf' and not content.startswith(b'%PDF-'): raise HTTPException(415,'File content does not match a PDF signature.')
  if suffix=='.docx' and not (content.startswith(b'PK') and b'word/document.xml' in content[:200000]): raise HTTPException(415,'File content does not look like a DOCX document.')
  path,digest=store_upload(content,name,user.id)
- row=Resume(user_id=user.id,order_id=order.id if order else None,original_filename=name[:255],file_path=path,mime_type='application/pdf' if suffix=='.pdf' else 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',sha256=digest,target_role=target_role,template_id=template_id,template_overrides=overrides,template_snapshot=tpl.spec,status='queued',expires_at=datetime.now(timezone.utc)+timedelta(days=settings.retention_days))
+ row=Resume(user_id=user.id,order_id=order.id if order else None,original_filename=name[:255],file_path=path,mime_type='application/pdf' if suffix=='.pdf' else 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',sha256=digest,target_role=target_role,template_id=template_id,template_overrides=overrides,template_snapshot=tpl.spec,status='queued',collection_status='uploaded',generation_status='pending',expires_at=datetime.now(timezone.utc)+timedelta(days=settings.retention_days))
  db.add(row); db.commit(); db.refresh(row); audit(db,user,'resume.uploaded','resume',row.id,{'sha256':digest,'size_bytes':len(content)}); db.commit(); rid=row.id
  if settings.run_jobs_inline: process_resume_job(rid)
  else:
@@ -194,7 +389,7 @@ async def upload_resume(request:Request,file:UploadFile=File(...),order_id: int 
    Queue(settings.queue_name,connection=Redis.from_url(settings.redis_url)).enqueue(process_resume_job,rid,job_timeout=900,result_ttl=86400,failure_ttl=86400)
   except Exception as exc:
    row.status='failed'; db.add(AuditLog(actor_user_id=user.id,action='resume.queue_failed',resource_type='resume',resource_id=str(row.id),details={'error_type':type(exc).__name__})); db.commit()
- return {'id':rid,'status':row.status,'message':'Resume accepted. Processing status reflects the backend job state.'}
+ return {'id':rid,'status':row.status,'collection_status':row.collection_status,'generation_status':row.generation_status,'message':'Resume accepted. Processing status reflects the backend job state.'}
 @router.get('/resumes')
 def list_resumes(db:Session=Depends(get_db),user:User=Depends(current_user)):
  rows=db.query(Resume).filter_by(user_id=user.id).order_by(desc(Resume.created_at)).all()
@@ -206,7 +401,178 @@ def get_resume(resume_id:int,db:Session=Depends(get_db),user:User=Depends(curren
  ex=db.query(Extraction).filter_by(resume_id=r.id).first(); rev=db.query(Review).filter_by(resume_id=r.id).order_by(desc(Review.created_at)).first(); outputs=db.query(Output).filter_by(resume_id=r.id).all(); order=db.get(Order,r.order_id) if r.order_id else None
  if not order_unlocked(order): outputs=[]
  voice=db.query(AuditLog).filter_by(resource_type='resume',resource_id=str(r.id),action='full_makeover.voice_note_added').order_by(desc(AuditLog.created_at)).first()
- return {'id':r.id,'filename':r.original_filename,'status':r.status,'target_role':r.target_role,'template_id':r.template_id,'package_id':(order.package_id if order else None),'extraction':ex.data if ex else None,'review':rev.data if rev else None,'voice_note_url':voice.details.get('url') if voice else None,'outputs':[{'id':o.id,'kind':o.kind,'download_url':f'/api/outputs/{o.id}/download'} for o in outputs if (o.expires_at.replace(tzinfo=timezone.utc) if o.expires_at.tzinfo is None else o.expires_at)>datetime.now(timezone.utc)],'error':'Processing failed. Check configuration and try again or contact support.' if r.status=='failed' else None}
+ return {
+     'id':r.id,
+     'filename':r.original_filename,
+     'status':r.status,
+     'collection_status':r.collection_status,
+     'generation_status':r.generation_status,
+     'validation_report':r.validation_report,
+     'target_role':r.target_role,
+     'template_id':r.template_id,
+     'package_id':(order.package_id if order else None),
+     'extraction':ex.data if ex else None,
+     'review':rev.data if rev else None,
+     'voice_note_url':voice.details.get('url') if voice else None,
+     'outputs':[{'id':o.id,'kind':o.kind,'download_url':f'/api/outputs/{o.id}/download'} for o in outputs if (o.expires_at.replace(tzinfo=timezone.utc) if o.expires_at.tzinfo is None else o.expires_at)>datetime.now(timezone.utc)],
+     'error':'Processing failed. Check configuration and try again or contact support.' if r.status=='failed' else None
+ }
+
+@router.get('/resumes/{resume_id}/status')
+def get_resume_status(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    return {
+        'id': r.id,
+        'status': r.status,
+        'collection_status': r.collection_status,
+        'generation_status': r.generation_status,
+        'has_validation_report': r.validation_report is not None,
+    }
+
+@router.post('/resumes/{resume_id}/extract')
+def extract_resume_endpoint(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    try:
+        canonical = extract_and_normalize(r.id, db)
+        return {'ok': True, 'resume_id': r.id, 'collection_status': r.collection_status, 'data': canonical.model_dump(mode='json')}
+    except Exception as exc:
+        raise HTTPException(502, f'Extraction failed: {exc}') from exc
+
+@router.post('/resumes/{resume_id}/normalize')
+def normalize_resume_endpoint(resume_id: int, body: dict = None, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    raw_data = body if body and isinstance(body, dict) else None
+    if not raw_data:
+        ex = db.query(Extraction).filter_by(resume_id=r.id).first()
+        if not ex:
+            raise HTTPException(400, 'Resume has not been extracted yet.')
+        raw_data = ex.data
+    try:
+        normalized = ResumeNormalizer.normalize(raw_data)
+        # Update extraction
+        ex = db.query(Extraction).filter_by(resume_id=r.id).first()
+        if ex:
+            ex.data = normalized.model_dump(mode='json')
+            db.commit()
+        return {'ok': True, 'normalized': normalized.model_dump(mode='json')}
+    except Exception as exc:
+        raise HTTPException(422, f'Normalization failed: {exc}') from exc
+
+@router.get('/resumes/{resume_id}/missing-information')
+def get_missing_information(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    try:
+        report = detect_missing_info(r.id, db)
+        return report.model_dump(mode='json')
+    except Exception as exc:
+        raise HTTPException(500, f'Failed to assess missing information: {exc}') from exc
+
+@router.post('/resumes/{resume_id}/answers')
+def submit_answers_endpoint(
+    resume_id: int,
+    body: ResumeAnswerSubmission,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    try:
+        updated = apply_resume_answers(r.id, body.answers, db, body.confirm)
+        report = detect_missing_info(r.id, db)
+        return {
+            'ok': True,
+            'collection_status': r.collection_status,
+            'missing_information': report.model_dump(mode='json'),
+            'updated_resume': updated.model_dump(mode='json'),
+        }
+    except Exception as exc:
+        raise HTTPException(422, f'Failed to process answers: {exc}') from exc
+
+@router.post('/resumes/{resume_id}/enhance')
+def enhance_resume_endpoint(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    ex = db.query(Extraction).filter_by(resume_id=r.id).first()
+    if not ex:
+        raise HTTPException(400, 'Resume must be extracted before content enhancement.')
+    try:
+        canonical = ResumeJSON.model_validate(ex.data)
+        gemini = GeminiService()
+        enhanced = gemini.enhance(canonical, r.target_role)
+        ex.data = enhanced.model_dump(mode='json')
+        db.commit()
+        return {'ok': True, 'enhanced': enhanced.model_dump(mode='json')}
+    except Exception as exc:
+        raise HTTPException(502, f'Content enhancement failed: {exc}') from exc
+
+@router.post('/resumes/{resume_id}/generate')
+def generate_resume_endpoint(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    order = db.get(Order, r.order_id) if r.order_id else None
+    if not order_unlocked(order):
+        raise HTTPException(403, 'A verified paid order is required for generation.')
+    try:
+        gen_doc = generate_resume_document(r.id, db)
+        return {
+            'ok': True,
+            'resume_id': r.id,
+            'generation_status': r.generation_status,
+            'quality_score': gen_doc.quality_score,
+            'is_valid': gen_doc.is_valid,
+            'validation_report': gen_doc.validation_result,
+            'docx_available': gen_doc.docx_path is not None,
+            'pdf_available': gen_doc.pdf_path is not None,
+        }
+    except Exception as exc:
+        raise HTTPException(500, f'Generation failed: {exc}') from exc
+
+@router.get('/resumes/{resume_id}/download')
+def download_generated_resume(
+    resume_id: int,
+    format: str = "docx",
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+):
+    r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
+    if not r:
+        raise HTTPException(404, 'Resume not found.')
+    order = db.get(Order, r.order_id) if r.order_id else None
+    if not order_unlocked(order):
+        raise HTTPException(403, 'Access not permitted.')
+    out = (
+        db.query(Output)
+        .filter_by(resume_id=r.id, kind=format.lower())
+        .order_by(desc(Output.created_at))
+        .first()
+    )
+    if not out:
+        raise HTTPException(404, f'Generated {format.upper()} document not found.')
+    if (out.expires_at.replace(tzinfo=timezone.utc) if out.expires_at.tzinfo is None else out.expires_at) < datetime.now(timezone.utc):
+        raise HTTPException(410, 'This output has expired.')
+    if out.file_path.startswith('s3://'):
+        try:
+            return RedirectResponse(signed_download_url(out.file_path), status_code=302)
+        except Exception as exc:
+            raise HTTPException(503, 'Private storage download temporarily unavailable.') from exc
+    if not Path(out.file_path).is_file():
+        raise HTTPException(404, 'Output file is unavailable.')
+    return FileResponse(
+        out.file_path,
+        filename=f"ResumeIQ-AI-{r.id}.{out.kind}",
+        media_type='application/pdf' if out.kind == 'pdf' else 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    )
 @router.get('/outputs/{output_id}/download')
 def download_output(output_id:int,db:Session=Depends(get_db),user:User=Depends(current_user)):
  out=db.get(Output,output_id); resume=db.get(Resume,out.resume_id) if out else None
@@ -255,6 +621,8 @@ def request_revision(resume_id:int,body:RevisionBody,db:Session=Depends(get_db),
  revision=RevisionRequest(resume_id=r.id,user_id=user.id,notes=body.notes,status='requested');db.add(revision);audit(db,user,'revision.requested','resume',r.id);db.commit();db.refresh(revision)
  return {'id':revision.id,'status':revision.status,'message':'Revision request recorded for admin review.'}
 
+
+# Template routes follow
 @router.get('/templates')
 def templates(db:Session=Depends(get_db)):
  rows=db.query(Template).filter_by(published=True).all()
