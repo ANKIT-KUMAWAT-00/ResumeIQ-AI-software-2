@@ -21,3 +21,9 @@ coverage/
 .DS_Store
 
 *.log
+
+# Local SQLite and Private Storage
+*.db
+*.sqlite*
+private_uploads/
+private_outputs/
