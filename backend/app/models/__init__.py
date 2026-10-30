@@ -1,2 +1,41 @@
-from app.models.models import User, OTPCode, Order, Payment, Resume, Extraction, Review, Template, Output, AuditLog, WebhookEvent, RevisionRequest, Testimonial, UserSession, RoleRubric
-__all__ = ["User","OTPCode","Order","Payment","Resume","Extraction","Review","Template","Output","AuditLog","WebhookEvent","RevisionRequest","Testimonial","UserSession","RoleRubric"]
+from app.models.models import (
+    User,
+    OTPCode,
+    Verification,
+    Order,
+    Payment,
+    Resume,
+    ResumeAnswer,
+    GeneratedDocument,
+    Extraction,
+    Review,
+    Template,
+    Output,
+    AuditLog,
+    WebhookEvent,
+    RevisionRequest,
+    Testimonial,
+    UserSession,
+    RoleRubric,
+)
+
+__all__ = [
+    "User",
+    "OTPCode",
+    "Verification",
+    "Order",
+    "Payment",
+    "Resume",
+    "ResumeAnswer",
+    "GeneratedDocument",
+    "Extraction",
+    "Review",
+    "Template",
+    "Output",
+    "AuditLog",
+    "WebhookEvent",
+    "RevisionRequest",
+    "Testimonial",
+    "UserSession",
+    "RoleRubric",
+]
