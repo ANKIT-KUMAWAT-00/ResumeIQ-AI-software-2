@@ -7,29 +7,17 @@ def now(): return datetime.now(timezone.utc)
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
+    full_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
     email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
-    full_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    role: Mapped[str] = mapped_column(String(20), default="user")
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    account_status: Mapped[str] = mapped_column(String(30), default="active", index=True)
-    role: Mapped[str] = mapped_column(String(20), default="user")
+    account_status: Mapped[str] = mapped_column(String(30), default="active")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-class Verification(Base):
-    __tablename__ = "verifications"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    verification_type: Mapped[str] = mapped_column(String(20), index=True)
-    token_hash: Mapped[str] = mapped_column(String(128), index=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    attempts: Mapped[int] = mapped_column(Integer, default=0)
-    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
-
 class OTPCode(Base):
     __tablename__ = "otp_codes"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -59,6 +47,18 @@ class Payment(Base):
     status: Mapped[str] = mapped_column(String(30), default="pending")
     signature_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+class Verification(Base):
+    __tablename__ = "verifications"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    identifier: Mapped[str] = mapped_column(String(254), index=True)
+    verification_type: Mapped[str] = mapped_column(String(30), index=True)
+    token_hash: Mapped[str] = mapped_column(String(128))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
 class Resume(Base):
     __tablename__ = "resumes"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -73,7 +73,11 @@ class Resume(Base):
     template_overrides: Mapped[dict] = mapped_column(JSON, default=dict)
     template_snapshot: Mapped[dict] = mapped_column(JSON, default=dict)
     status: Mapped[str] = mapped_column(String(30), default="uploaded", index=True)
+    collection_status: Mapped[str] = mapped_column(String(30), default="uploaded", index=True)
+    generation_status: Mapped[str] = mapped_column(String(30), default="pending", index=True)
+    validation_report: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 class Extraction(Base):
     __tablename__ = "extractions"
@@ -95,9 +99,42 @@ class Template(Base):
     __tablename__ = "templates"
     id: Mapped[int] = mapped_column(primary_key=True)
     template_id: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    template_name: Mapped[str] = mapped_column(String(120), default="")
+    template_type: Mapped[str] = mapped_column(String(30), default="built_in")
+    original_file_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     version: Mapped[str] = mapped_column(String(30), default="1.0.0")
     spec: Mapped[dict] = mapped_column(JSON)
+    analysis_status: Mapped[str] = mapped_column(String(30), default="analyzed")
+    is_confirmed: Mapped[bool] = mapped_column(Boolean, default=True)
     published: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+class ResumeAnswer(Base):
+    __tablename__ = "resume_answers"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    field_path: Mapped[str] = mapped_column(String(120), index=True)
+    question: Mapped[str] = mapped_column(Text)
+    answer_value: Mapped[dict] = mapped_column(JSON)
+    confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+class GeneratedDocument(Base):
+    __tablename__ = "generated_documents"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    resume_id: Mapped[int] = mapped_column(ForeignKey("resumes.id"), index=True)
+    docx_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    pdf_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    template_id: Mapped[str] = mapped_column(String(60))
+    template_version: Mapped[str] = mapped_column(String(30), default="1.0.0")
+    validation_result: Mapped[dict] = mapped_column(JSON, default=dict)
+    quality_score: Mapped[int] = mapped_column(Integer, default=100)
+    is_valid: Mapped[bool] = mapped_column(Boolean, default=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 class Output(Base):
     __tablename__ = "outputs"
