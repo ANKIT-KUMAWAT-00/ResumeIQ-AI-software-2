@@ -431,9 +431,7 @@ def get_resume_status(resume_id: int, db: Session = Depends(get_db), user: User 
         'has_validation_report': r.validation_report is not None,
     }
 
-
-# Resume intelligence endpoints follow
-
+@router.post('/resumes/{resume_id}/extract')
 def extract_resume_endpoint(resume_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
     r = db.query(Resume).filter_by(id=resume_id, user_id=user.id).first()
     if not r:
