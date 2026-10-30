@@ -214,12 +214,171 @@ class TemplateAnalyzer:
             "notes_and_uncertainty": notes,
         }
 
-        def analyze_pdf(self) -> dict[str, Any]:
-        return {}
+    def analyze_pdf(self) -> dict[str, Any]:
+        import pdfplumber
+        with pdfplumber.open(self.source) as pdf:
+            if not pdf.pages:
+                raise ValueError("PDF contains no readable pages.")
+            page = pdf.pages[0]
+            width, height = page.width, page.height
+            chars = page.chars
+            lines = page.lines
+            rects = page.rects
+            fonts = sorted({char.get("fontname", "") for char in chars if char.get("fontname")})
+            sizes = sorted({round(float(char.get("size", 9)), 1) for char in chars})
+            left = min((float(char["x0"]) for char in chars), default=45)
+            top = min((float(char["top"]) for char in chars), default=40)
+            right = max((float(char["x1"]) for char in chars), default=560)
+            bottom = max((float(char["bottom"]) for char in chars), default=740)
 
-    analyzer = TemplateAnalyzer(path)
-    return analyzer.analyze_docx()
+            # Detect horizontal rules
+            horizontal_rules = [
+                line for line in lines
+                if abs(float(line.get("top", 0)) - float(line.get("bottom", 0))) < 2
+                and float(line.get("x1", 0)) - float(line.get("x0", 0)) > 150
+            ]
 
+            # Detect section headings from text layout
+            words = page.extract_words(keep_blank_chars=False) or []
+            detected_headings: list[tuple[str, str, list[str], bool]] = []
+            seen_ids: set[str] = set()
+
+            for w in words:
+                text = w.get("text", "")
+                mapped = map_heading_to_section(text)
+                if mapped:
+                    sec_id, heading_text, fields, is_req = mapped
+                    if sec_id not in seen_ids:
+                        seen_ids.add(sec_id)
+                        detected_headings.append(mapped)
+
+        margins = {
+            "top_in": max(0.2, min(1.5, round(top / 72, 2))),
+            "bottom_in": max(0.2, min(1.5, round((height - bottom) / 72, 2))),
+            "left_in": max(0.2, min(1.5, round(left / 72, 2))),
+            "right_in": max(0.2, min(1.5, round((width - right) / 72, 2))),
+        }
+
+        if not detected_headings:
+            detected_headings = [
+                ("skills", "SKILLS", ["category", "skills"], True),
+                ("experience", "INTERNSHIPS", ["title", "organization", "location", "start_date", "end_date", "bullets"], False),
+                ("projects", "PROJECTS", ["title", "technologies", "bullets", "url", "start_date", "end_date"], True),
+                ("certifications", "CERTIFICATES", ["title", "issuer", "date", "details"], False),
+                ("achievements", "ACHIEVEMENTS", ["title", "issuer", "date", "details"], False),
+                ("education", "EDUCATION", ["institution", "degree", "field_of_study", "start_date", "end_date", "details"], True),
+                ("extracurricular", "EXTRACURRICULAR ACTIVITIES", ["title", "organization", "date", "details"], False),
+            ]
+
+        sections_list = []
+        section_order = []
+        for idx, (sec_id, label, fields, is_req) in enumerate(detected_headings, start=1):
+            section_order.append(sec_id)
+            sections_list.append({
+                "id": sec_id,
+                "label": label,
+                "heading": label,
+                "required": is_req,
+                "order": idx,
+                "repeatable": True,
+                "enabled": True,
+                "heading_uppercase": label.isupper(),
+                "heading_bold": True,
+                "heading_underline": False,
+                "horizontal_rule": len(horizontal_rules) > 0,
+                "rule_thickness_pt": 0.5,
+                "rule_spacing_pt": 2.0,
+                "max_items": 20,
+                "max_bullets_per_item": 6,
+                "allowed_fields": fields,
+            })
+
+        usable_width = width / 72 - margins["left_in"] - margins["right_in"]
+        date_tab_pos = min(6.9, max(3.0, round(usable_width - 0.05, 2)))
+        t_id = "draft-" + re.sub(r"[^a-z0-9-]+", "-", self.source.stem.lower()).strip("-")[:50]
+
+        is_lpu = "lpu" in self.source.name.lower() or "ankit" in self.source.name.lower()
+
+        return {
+            "template_id": t_id,
+            "template_name": self.source.stem.replace("-", " ").replace("_", " ").title(),
+            "version": "1.0.0",
+            "file_type": "pdf",
+            "display_name": self.source.stem.replace("-", " ").replace("_", " ").title(),
+            "description": f"Analyzed from {self.source.name}",
+            "page_size": "LETTER" if abs(width / 72 - 8.5) < 0.3 else "A4",
+            "orientation": "landscape" if width > height else "portrait",
+            "margins": margins,
+            "fonts": {
+                "family": fonts[0] if fonts else "Arial",
+                "name_pt": max(sizes) if sizes and max(sizes) >= 14 else 18.0,
+                "heading_pt": max([x for x in sizes if x < 18] or [10.5]),
+                "body_pt": min([x for x in sizes if x >= 8] or [8.5]),
+                "small_pt": min(sizes) if sizes and min(sizes) >= 6 else 7.5,
+                "heading_color": "#2874B8" if is_lpu else "#172554",
+                "body_color": "#111827",
+            },
+            "spacing": {
+                "line_spacing": 0.95 if is_lpu else 1.0,
+                "paragraph_before_pt": 0.0,
+                "paragraph_after_pt": 1.0 if is_lpu else 2.0,
+                "section_before_pt": 4.0 if is_lpu else 7.0,
+                "section_after_pt": 1.5 if is_lpu else 3.0,
+            },
+            "section_order": section_order,
+            "sections": sections_list,
+            "bullet_character": "•",
+            "bullet_left_indent_in": 0.18,
+            "bullet_first_line_indent_in": -0.12,
+            "date_tab_position_in": date_tab_pos,
+            "contact_separator": " | ",
+            "header_alignment": "center",
+            "header_uppercase": False,
+            "contact_layout": "two-column" if is_lpu else "inline",
+            "contact_labels": True if is_lpu else False,
+            "allow_photo": False,
+            "max_pages": 2,
+            "layout": "single-column",
+            "fit_adjustments": {
+                "min_body_pt": 8.0,
+                "max_body_pt": 11.0,
+                "min_paragraph_after_pt": 0.0,
+                "max_paragraph_after_pt": 6.0,
+            },
+            "validation_rules": {
+                "enforce_section_order": True,
+                "require_contact_info": True,
+            },
+            "notes_and_uncertainty": [
+                f"PDF fonts observed: {fonts[:8] or ['Arial']}.",
+                f"Font sizes observed: {sizes[:10] or []}.",
+                f"First-page dimensions: {round(width, 1)} x {round(height, 1)} points.",
+                f"Horizontal rules detected: {len(horizontal_rules)}.",
+                "Human review and visual verification required.",
+            ],
+        }
+
+# Backward compatibility functions
 def analyze_docx(path: str | Path) -> dict[str, Any]:
     analyzer = TemplateAnalyzer(path)
     return analyzer.analyze_docx()
+
+def analyze_pdf(path: str | Path) -> dict[str, Any]:
+    analyzer = TemplateAnalyzer(path)
+    return analyzer.analyze_pdf()
+
+def main():
+    parser = argparse.ArgumentParser(description="Analyze DOCX/PDF into draft TemplateSpec JSON")
+    parser.add_argument("input")
+    parser.add_argument("--output", "-o", default="draft-template.json")
+    args = parser.parse_args()
+    source = Path(args.input)
+    analyzer = TemplateAnalyzer(source)
+    validated = analyzer.analyze()
+    dest = Path(args.output)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(validated.model_dump(mode="json"), indent=2), encoding="utf-8")
+    print(f"Draft written to {dest}; review uncertainty notes before publishing.")
+
+if __name__ == "__main__":
+    main()
